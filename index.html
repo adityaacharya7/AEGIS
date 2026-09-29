@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project AEGIS — AI Forecast Bust Intelligence Platform (MoES / NCMRWF)</title>
+  <meta name="description" content="AI-based medium-range weather forecast bust detection and operational trust score platform for NCMRWF, Ministry of Earth Sciences (MoES). SIH PS-26079.">
+  
+  <!-- Modern Typography from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Design System & Component Stylesheets -->
+  <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="css/design-system.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/renovation.css">
+  <link rel="stylesheet" href="css/map-workspace.css">
+</head>
+<body class="light-theme">
+  <!-- 1. Top Navigation & Operational Cockpit Bar -->
+  <header class="app-header" id="appHeader">
+    <div class="header-brand">
+      <div class="brand-logo-mark" title="Project AEGIS Core Intelligence">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M12 8v4"/>
+          <path d="M12 16h.01"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="brand-title">
+          <span>PROJECT AEGIS</span>
+          <span class="badge-sub">PS-26079</span>
+          <span class="badge-org">Concept dashboard</span>
+        </div>
+        <div class="brand-subtitle">Forecast confidence intelligence · illustrative scenario</div>
+      </div>
+    </div>
+
+    <!-- Active Run & Telemetry Status -->
+    <div class="header-telemetry">
+      <div class="telemetry-pill">
+        <span class="status-indicator active"></span>
+        <span class="pill-label">Scenario:</span>
+        <span class="pill-value font-mono">NCUM-G 00Z · 27 Sep 2026</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="pill-label">Data:</span>
+        <span class="pill-value font-mono">Illustrative prototype</span>
+      </div>
+      <div class="telemetry-pill alert-pill" id="highRiskPill" title="Click to filter critical bust hotspots">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span class="pill-label">Critical sample zones:</span>
+        <span class="pill-value font-bold" id="criticalCountBadge">6 Districts</span>
+      </div>
+    </div>
+
+    <!-- Actions & Modals -->
+    <div class="header-actions">
+      <div class="search-box">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="districtSearchInput" placeholder="Search sample districts..." aria-label="Search sample districts" autocomplete="off">
+        <div class="search-dropdown hidden" id="searchDropdown"></div>
+      </div>
+
+      <button class="btn-icon" id="btnOpenShortcuts" title="Keyboard Shortcuts (?)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </button>
+      
+      <button class="btn btn-secondary btn-sm" id="btnOpenModelLab" title="Open Cross-Model Divergence Lab">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+          <polyline points="2 17 12 22 22 17"/>
+          <polyline points="2 12 12 17 22 12"/>
+        </svg>
+        <span>Model Drift Lab</span>
+      </button>
+
+      <button class="btn btn-primary btn-sm" id="btnOpenApiModal" title="Open Operational REST API & CAP Sandbox">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+        </svg>
+        <span>CAP / REST API</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- 2. Hazard Selector Sub-Bar -->
+  <section class="hazard-filter-bar" id="hazardBar">
+    <div class="hazard-bar-label">
+      <span class="text-caption">HAZARD VIEW</span>
+    </div>
+    <div class="hazard-chips">
+      <button class="hazard-chip active" data-hazard="all"><span class="chip-title">All hazards</span><span class="chip-tag font-mono">9 sites</span></button>
+      <button class="hazard-chip" data-hazard="rainfall">
+        <span class="chip-icon">🌧️</span>
+        <span class="chip-title">Extreme Rainfall & Flash Floods</span>
+        <span class="chip-tag font-mono">Scenario</span>
+      </button>
+      <button class="hazard-chip" data-hazard="cyclone">
+        <span class="chip-icon">🌀</span>
+        <span class="chip-title">Cyclogenesis & Track Bifurcation</span>
+        <span class="chip-tag font-mono">Scenario</span>
+      </button>
+      <button class="hazard-chip" data-hazard="heatwave">
+        <span class="chip-icon">☀️</span>
+        <span class="chip-title">Severe Heatwave Anomalies</span>
+        <span class="chip-tag font-mono">Scenario</span>
+      </button>
+      <button class="hazard-chip" data-hazard="western_disturbance">
+        <span class="chip-icon">❄️</span>
+        <span class="chip-title">Western Disturbances (Himalayas)</span>
+        <span class="chip-tag font-mono">Scenario</span>
+      </button>
+      <button class="hazard-chip" data-hazard="fog">
+        <span class="chip-icon">🌫️</span>
+        <span class="chip-title">Gangetic Inversion / Fog</span>
+        <span class="chip-tag font-mono">Scenario</span>
+      </button>
+    </div>
+    <div class="hazard-summary-metric">
+      <span class="text-caption">SAMPLE TRUST INDEX:</span>
+      <span class="trust-meter-val" id="nationalTrustScore">68.4%</span>
+      <span class="trust-sub font-mono">Calibrated (90% Cov)</span>
+    </div>
+  </section>
+
+  <!-- 3. Main Multi-Layered GIS Workspace -->
+  <main class="main-layout" id="mainLayout">
+
+    <!-- LEFT SIDEBAR: In-Application Layer Stack Controller -->
+    <aside class="sidebar-layers" id="layerControllerSidebar">
+      <div class="sidebar-section-header">
+        <div class="title-with-badge">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+            <polyline points="2 17 12 22 22 17"/>
+            <polyline points="2 12 12 17 22 12"/>
+          </svg>
+          <h3>Map layers</h3>
+          <span class="badge-sub">7 layers</span>
+        </div>
+        <div style="display:flex; gap:4px;">
+          <button class="btn-icon" id="btnResetLayers" title="Reset all layers to default">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+            </svg>
+          </button>
+          <button class="btn-icon" id="btnToggleSidebar" title="Collapse Layer Panel (L key)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="layers-scroll-container">
+        <!-- Layer 6: Operational CAP Alerts -->
+        <div class="layer-item" data-layer-id="layer-alerts">
+          <div class="layer-item-top">
+            <label class="custom-checkbox">
+              <input type="checkbox" id="toggleLayerAlerts" checked>
+              <span class="checkmark"></span>
+            </label>
+            <div class="layer-info">
+              <span class="layer-number badge-l6">L6</span>
+              <span class="layer-name">High-risk outlines</span>
+            </div>
+            <span class="layer-badge-status status-high">Critical</span>
+          </div>
+          <div class="layer-controls">
+            <span class="control-label">Opacity:</span>
+            <input type="range" class="opacity-slider" id="opacityAlerts" min="10" max="100" value="90">
+            <span class="slider-val" id="valOpacityAlerts">90%</span>
+          </div>
+        </div>
+
+        <!-- Layer 5: District Boundaries & Trust Badges -->
+        <div class="layer-item" data-layer-id="layer-districts">
+          <div class="layer-item-top">
+            <label class="custom-checkbox">
+              <input type="checkbox" id="toggleLayerDistricts" checked>
+              <span class="checkmark"></span>
+            </label>
+            <div class="layer-info">
+              <span class="layer-number badge-l5">L5</span>
+              <span class="layer-name">Trust score markers</span>
+            </div>
+          <span class="layer-badge-status status-info">9 samples</span>
+          </div>
+          <div class="layer-controls">
+            <span class="control-label">Opacity:</span>
+            <input type="range" class="opacity-slider" id="opacityDistricts" min="10" max="100" value="85">
+            <span class="slider-val" id="valOpacityDistricts">85%</span>
+          </div>
+        </div>
+
+        <!-- Layer 4: Synoptic Instability & Hazard Hotspots -->
+        <div class="layer-item" data-layer-id="layer-synoptic">
+          <div class="layer-item-top">
+            <label class="custom-checkbox">
+              <input type="checkbox" id="toggleLayerSynoptic" checked>
+              <span class="checkmark"></span>
+            </label>
+            <div class="layer-info">
+              <span class="layer-number badge-l4">L4</span>
+              <span class="layer-name">Hazard type labels</span>
+            </div>
+            <span class="layer-badge-status status-warning">Convective</span>
+          </div>
+          <div class="layer-controls">
+            <span class="control-label">Opacity:</span>
+            <input type="range" class="opacity-slider" id="opacitySynoptic" min="10" max="100" value="80">
+            <span class="slider-val" id="valOpacitySynoptic">80%</span>
+          </div>
+        </div>
+
+        <!-- Layer 3: Forecast Drift Motion Vectors (FDI) -->
+        <div class="layer-item" data-layer-id="layer-drift">
+          <div class="layer-item-top">
+            <label class="custom-checkbox">
+              <input type="checkbox" id="toggleLayerDrift" checked>
+              <span class="checkmark"></span>
+            </label>
+            <div class="layer-info">
+              <span class="layer-number badge-l3">L3</span>
+              <span class="layer-name">Forecast drift rings</span>
+            </div>
+            <span class="layer-badge-status status-unique">FDI Vector</span>
+          </div>
+          <div class="layer-controls">
+            <span class="control-label">Opacity:</span>
+            <input type="range" class="opacity-slider" id="opacityDrift" min="10" max="100" value="95">
+            <span class="slider-val" id="valOpacityDrift">95%</span>
+          </div>
+        </div>
+
+        <!-- Layer 2: AI Forecast Bust Probability Heatmap -->
+        <div class="layer-item" data-layer-id="layer-bust">
+          <div class="layer-item-top">
+            <label class="custom-checkbox">
+              <input type="checkbox" id="toggleLayerBust" checked>
+              <span class="checkmark"></span>
+            </label>
+            <div class="layer-info">
+              <span class="layer-number badge-l2">L2</span>
+              <span class="layer-name">Bust risk halos</span>
+            </div>
+            <span class="layer-badge-status status-ai">Ensemble ML</span>
+          </div>
+          <div class="layer-controls">
+            <span class="control-label">Opacity:</span>
+            <input type="range" class="opacity-slider" id="opacityBust" min="10" max="100" value="70">
+            <span class="slider-val" id="valOpacityBust">70%</span>
+          </div>
+        </div>
+
+        <!-- Layer 1: Raw NWP Meteorological Field -->
+        <div class="layer-item" data-layer-id="layer-nwp">
+          <div class="layer-item-top">
+            <label class="custom-checkbox">
+              <input type="checkbox" id="toggleLayerNWP" checked>
+              <span class="checkmark"></span>
+            </label>
+            <div class="layer-info">
+              <span class="layer-number badge-l1">L1</span>
+              <span class="layer-name">Forecast rainfall labels</span>
+            </div>
+            <span class="layer-badge-status status-default">NCUM-G</span>
+          </div>
+          <div class="layer-controls">
+            <span class="control-label">Opacity:</span>
+            <input type="range" class="opacity-slider" id="opacityNWP" min="10" max="100" value="45">
+            <span class="slider-val" id="valOpacityNWP">45%</span>
+          </div>
+        </div>
+
+        <!-- Layer 0: Pristine Light Cartographic Basemap -->
+        <div class="layer-item" data-layer-id="layer-basemap">
+          <div class="layer-item-top">
+            <label class="custom-checkbox">
+              <input type="checkbox" id="toggleLayerBasemap" checked>
+              <span class="checkmark"></span>
+            </label>
+            <div class="layer-info">
+              <span class="layer-number badge-l0">L0</span>
+              <span class="layer-name">Geographic basemap</span>
+            </div>
+            <span class="layer-badge-status status-default">Offline</span>
+          </div>
+          <div class="layer-controls">
+            <span class="control-label">Opacity:</span>
+            <input type="range" class="opacity-slider" id="opacityBasemap" min="0" max="100" value="25">
+            <span class="slider-val" id="valOpacityBasemap">25%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Legend Box -->
+      <div class="map-legend-card">
+        <div class="legend-header">
+          <span class="font-bold">Trust score</span>
+          <span class="text-caption font-mono">0–100 OTI</span>
+        </div>
+        <div class="legend-scale-bar"></div>
+        <div class="legend-labels font-mono">
+          <span>0 Low trust</span>
+          <span>50 Caution</span>
+          <span>100 High trust</span>
+        </div>
+        <div class="legend-tags">
+          <span class="legend-tag tag-high">High Trust (80-100)</span>
+          <span class="legend-tag tag-med">Caution (50-79)</span>
+          <span class="legend-tag tag-crit">Low trust (&lt;50)</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER: Interactive GIS Map & Timeline Canvas -->
+    <section class="viewport-canvas-container" id="gisCanvasContainer">
+      
+      <div class="map-workspace-heading">
+        <div><span class="map-eyebrow">GEOGRAPHIC EXPLORER</span><h2 id="mapHazardTitle">Rainfall &amp; flood risk</h2><p id="mapSummary" aria-live="polite"></p></div>
+        <div class="map-drawer-buttons">
+          <button class="btn btn-secondary hidden" id="btnOpenSidebarFloating" title="Show layers (L)">Layers</button>
+          <button class="btn btn-secondary hidden" id="btnOpenInspectorFloating" title="Show district details (I)">Details</button>
+        </div>
+      </div>
+      <div class="canvas-top-strip">
+        <div class="lead-day-indicator"><span class="lead-badge" id="currentLeadDayBadge">DAY 4 (+96 hrs)</span><span class="lead-date" id="currentLeadDateText">Valid: Oct 01, 2026</span></div>
+        <div class="map-view-toggle" aria-label="Map filter">
+          <button class="view-chip active" id="viewModeAll" aria-pressed="true">All locations</button>
+          <button class="view-chip" id="viewModeHotspots" aria-pressed="false">High risk</button>
+        </div>
+        <div class="map-quick-tools" aria-label="Map navigation">
+          <button class="tool-btn" id="btnZoomIn" title="Zoom in (+)" aria-label="Zoom in">+</button>
+          <button class="tool-btn" id="btnZoomOut" title="Zoom out (-)" aria-label="Zoom out">−</button>
+          <button class="tool-btn map-fit-button" id="btnResetView" title="Fit India (R)" aria-label="Reset map to India">Fit India</button>
+        </div>
+      </div>
+      <div class="gis-map-viewport" id="mapViewport">
+        <div id="geographicMap" aria-label="Interactive map of sample forecast locations in India"></div>
+        <div class="map-scale-key"><span class="key-heading">TRUST SCORE</span><span><i class="key-dot high"></i>80–100</span><span><i class="key-dot medium"></i>50–79</span><span><i class="key-dot low"></i>25–49</span><span><i class="key-dot critical"></i>0–24</span></div>
+        <div class="map-empty hidden" id="mapEmptyState" role="status"><strong>No high-risk locations</strong><p>No sample location exceeds 70% bust risk for this day and hazard.</p><button class="btn btn-primary" id="btnClearMapFilter">Show all locations</button></div>
+      </div>
+      <div class="map-footnote">Illustrative forecasts · approximate reference points · locally stored basemap</div>
+
+      <!-- BOTTOM: Interactive Day 1 to Day 10 Timeline Scrubber -->
+      <div class="timeline-bar-card" id="timelineController">
+        <div class="timeline-meta">
+          <div class="timeline-controls">
+            <button class="btn-play-pause" id="btnPlayPause" title="Play 10-Day Forecast Animation (Space key)">
+              <svg id="playIcon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+              <svg id="pauseIcon" class="hidden" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+              </svg>
+            </button>
+            <div class="timeline-heading">
+              <span class="title">Forecast Evolution Timeline (Day 1–10)</span>
+              <span class="text-caption" id="leadBustRiskSummary" style="color:var(--trust-low);">Notice uncertainty & forecast drift compounding at Day 4–7</span>
+            </div>
+          </div>
+          <div class="timeline-lead-stats">
+            <span class="stat-item font-mono">Scenario cycle: <b>27 Sep 2026 · 00Z</b></span>
+            <span class="stat-item font-mono">Uncertainty Envelope: <b id="leadBustRiskEnvelopeSummary">Expanding</b></span>
+          </div>
+        </div>
+
+        <!-- Slider Track with 10 Step Knobs -->
+        <div class="timeline-track-wrapper">
+          <div class="timeline-ticks">
+            <div class="timeline-tick" data-day="1">
+              <span class="tick-dot"></span>
+              <span class="tick-label">Day 1</span>
+              <span class="tick-hours">+24h</span>
+            </div>
+            <div class="timeline-tick" data-day="2">
+              <span class="tick-dot"></span>
+              <span class="tick-label">Day 2</span>
+              <span class="tick-hours">+48h</span>
+            </div>
+            <div class="timeline-tick" data-day="3">
+              <span class="tick-dot"></span>
+              <span class="tick-label">Day 3</span>
+              <span class="tick-hours">+72h</span>
+            </div>
+            <div class="timeline-tick active-current" data-day="4">
+              <span class="tick-dot"></span>
+              <span class="tick-label">Day 4</span>
+              <span class="tick-hours">+96h</span>
+            </div>
+            <div class="timeline-tick" data-day="5">
+              <span class="tick-dot"></span>
+              <span class="tick-label">Day 5</span>
+              <span class="tick-hours">+120h</span>
+            </div>
+            <div class="timeline-tick" data-day="6">
+              <span class="tick-dot"></span>
+              <span class="tick-label">Day 6</span>
+              <span class="tick-hours">+144h</span>
+            </div>
+            <div class="timeline-tick" data-day="7">
+              <span class="tick-dot"></span>
+              <span class="tick-label">Day 7</span>
+              <span class="tick-hours">+168h</span>
+            </div>
+            <div class="timeline-tick" data-day="8">
+              <span class="tick-dot"></span>
+              <span class="tick-label">Day 8</span>
+              <span class="tick-hours">+192h</span>
+            </div>
+            <div class="timeline-tick" data-day="9">
+              <span class="tick-dot"></span>
+              <span class="tick-label">Day 9</span>
+              <span class="tick-hours">+216h</span>
+            </div>
+            <div class="timeline-tick" data-day="10">
+              <span class="tick-dot"></span>
+              <span class="tick-label">Day 10</span>
+              <span class="tick-hours">+240h</span>
+            </div>
+          </div>
+          <input type="range" class="day-range-slider" id="leadDaySlider" min="1" max="10" value="4" step="1" title="Drag to scrub lead time">
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT SIDEBAR: Slide-out District Intelligence & SHAP Reason Drawer -->
+    <aside class="sidebar-inspector" id="districtInspector">
+      <div class="inspector-header">
+        <div class="inspector-title-group">
+          <span class="text-caption font-bold text-primary">DISTRICT OPERATIONAL INTELLIGENCE</span>
+          <h2 class="district-headline" id="inspectorDistrictName">Ratnagiri</h2>
+          <span class="district-subline" id="inspectorStateName">Maharashtra • Konkan Coast Zone</span>
+        </div>
+        <button class="btn-icon" id="btnCloseInspector" title="Close Drawer (D or I key)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="inspector-content-scroll">
+        <!-- Trust Gauge & Conformal Uncertainty Box -->
+        <div class="inspector-card trust-card">
+          <div class="trust-card-top">
+            <div class="trust-gauge-box">
+              <svg class="radial-gauge" viewBox="0 0 120 120">
+                <circle class="gauge-bg" cx="60" cy="60" r="50"></circle>
+                <circle class="gauge-fill" id="gaugeFillCircle" cx="60" cy="60" r="50"></circle>
+              </svg>
+              <div class="gauge-center-text">
+                <span class="gauge-score-num" id="gaugeScoreNum">24</span>
+                <span class="gauge-score-denom">/ 100</span>
+                <span class="gauge-caption">TRUST SCORE</span>
+              </div>
+            </div>
+            <div class="trust-meta-summary">
+              <div class="risk-badge-pill badge-crit" id="inspectorBustStatusBadge">CRITICAL BUST RISK</div>
+              <div class="meta-data-line">
+                <span class="text-caption">Bust Probability:</span>
+                <span class="font-mono font-bold text-crimson" id="inspectorBustProb">86%</span>
+              </div>
+              <div class="meta-data-line">
+                <span class="text-caption">Model Drift Index:</span>
+                <span class="font-mono font-bold text-amber" id="inspectorDriftIndex">0.82 (Severe)</span>
+              </div>
+              <div class="meta-data-line">
+                <span class="text-caption">Conformal Cov:</span>
+                <span class="font-mono text-slate">Illustrative 90% interval</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Conformal Envelope Comparison -->
+          <div class="conformal-envelope-box">
+            <div class="envelope-header">
+              <span class="font-bold">NWP Value vs. Actual Bust Envelope</span>
+              <span class="font-mono text-caption text-primary">Scenario interval</span>
+            </div>
+            <div class="envelope-values-grid">
+              <div class="env-item nwp-val">
+                <span class="env-label">NCUM Prediction</span>
+                <span class="env-val font-mono" id="inspectorNwpVal">24 mm</span>
+              </div>
+              <div class="env-item actual-exp">
+                <span class="env-label">Expected Reality Envelope</span>
+                <span class="env-val font-mono text-crimson" id="inspectorEnvelopeVal">[110 — 175 mm]</span>
+              </div>
+            </div>
+            <div class="envelope-discrepancy-bar">
+              <div class="discrepancy-fill" id="envelopeFillBar" style="width: 82%;"></div>
+            </div>
+            <div class="envelope-disclaimer">
+              ⚠️ <b>Model Inversion Detected:</b> High likelihood of extreme localized precipitation missed by grid-scale physics.
+            </div>
+          </div>
+        </div>
+
+        <!-- Run-to-Run Forecast Drift Sparkline (Innovation 1) -->
+        <div class="inspector-card">
+          <div class="card-title-row">
+            <div class="title-with-pill">
+              <span class="badge-unique-mini">INNOVATION 1</span>
+              <h4>Forecast Run Drift Tracker</h4>
+            </div>
+            <span class="text-caption font-mono">Last 4 Model Cycles</span>
+          </div>
+          <p class="card-desc">Tracks how consecutive daily runs shifted for this target date. Large variance signals numerical bifurcation.</p>
+          <div class="drift-chart-container">
+            <div class="drift-bars-grid" id="driftBarsContainer"></div>
+          </div>
+        </div>
+
+        <!-- Explainable AI: Meteorologist Reason Card (TreeSHAP) (Innovation 2) -->
+        <div class="inspector-card">
+          <div class="card-title-row">
+            <div class="title-with-pill">
+              <span class="badge-unique-mini">EXPLANATION</span>
+              <h4>Explainable Meteorologist Reason Card</h4>
+            </div>
+            <span class="text-caption font-mono">Sample drivers</span>
+          </div>
+          <p class="card-desc">Atmospheric drivers and physical triggers that lowered model confidence:</p>
+          <div class="shap-reasons-list" id="shapReasonsList"></div>
+        </div>
+
+        <!-- Historical Synoptic Analogue Twin (Innovation 3) -->
+        <div class="inspector-card twin-card">
+          <div class="card-title-row">
+            <div class="title-with-pill">
+              <span class="badge-unique-mini">INNOVATION 3</span>
+              <h4>Historical Synoptic Twin</h4>
+            </div>
+            <span class="badge-similarity" id="inspectorTwinSimilarity">93% Match</span>
+          </div>
+          <div class="twin-body">
+            <div class="twin-title" id="inspectorTwinTitle">July 2019 Konkan Deluge Bust</div>
+            <p class="twin-summary" id="inspectorTwinDesc">
+              NCUM predicted 35mm rain 4 days prior, but actual ground AWS recorded 214mm due to unmodeled offshore vortex stagnation.
+            </p>
+            <div class="twin-stats font-mono">
+              <span>Event Date: <b>26-07-2019</b></span>
+              <span>Historical Discrepancy: <b>+179 mm</b></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Operational Action & NDRF/SDMA Readiness Playbook -->
+        <div class="inspector-card playbook-card">
+          <div class="card-title-row">
+            <h4>Illustrative response playbook</h4>
+            <span class="badge-action-sop">Scenario only</span>
+          </div>
+          <ul class="playbook-checklist" id="inspectorPlaybookList"></ul>
+        </div>
+
+        <!-- Quick Action Exports -->
+        <div class="inspector-footer-actions">
+          <button class="btn btn-secondary btn-sm" id="btnCopyGeoJson" title="Copy District Uncertainty Feature as GeoJSON">Copy GeoJSON</button>
+          <button class="btn btn-primary btn-sm" id="btnExportCapXml" title="Download Standard Common Alerting Protocol XML">Download CAP XML</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- MODAL: Model Drift & Stability Diagnostic Lab -->
+  <div class="modal-backdrop hidden" id="modalModelLab">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3>NCMRWF / IMD Multi-Model Forecast Drift & Stability Lab</h3>
+          <span class="text-caption">Cross-Model Ensemble Divergence & Chaos Bifurcation Analysis</span>
+        </div>
+        <button class="btn-icon" id="btnCloseModelLab">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="model-comparison-grid">
+          <div class="model-stat-card">
+            <div class="model-name">NCUM-G (India Unified Model)</div>
+            <div class="model-spec font-mono">4km resolution • 00Z Cycle</div>
+            <div class="model-metric">
+              <span class="text-caption">Mean Forecast Drift:</span>
+              <span class="font-bold text-amber font-mono">38.4% (Elevated)</span>
+            </div>
+            <div class="model-metric">
+              <span class="text-caption">Bust Vulnerability:</span>
+              <span class="font-bold text-crimson font-mono">Western Ghats & NE</span>
+            </div>
+          </div>
+          <div class="model-stat-card">
+            <div class="model-name">GFS (Global Forecast System)</div>
+            <div class="model-spec font-mono">12km resolution • 00Z Cycle</div>
+            <div class="model-metric">
+              <span class="text-caption">Mean Forecast Drift:</span>
+              <span class="font-bold text-emerald font-mono">22.1% (Stable)</span>
+            </div>
+            <div class="model-metric">
+              <span class="text-caption">Bust Vulnerability:</span>
+              <span class="font-bold text-amber font-mono">Peninsular Troughs</span>
+            </div>
+          </div>
+          <div class="model-stat-card">
+            <div class="model-name">WRF (High-Res Regional)</div>
+            <div class="model-spec font-mono">3km nested • 06Z Cycle</div>
+            <div class="model-metric">
+              <span class="text-caption">Mean Forecast Drift:</span>
+              <span class="font-bold text-crimson font-mono">46.8% (High Chaos)</span>
+            </div>
+            <div class="model-metric">
+              <span class="text-caption">Bust Vulnerability:</span>
+              <span class="font-bold text-crimson font-mono">Cloudburst Boundaries</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="lead-time-divergence-card">
+          <div class="divergence-header">
+            <span class="font-bold">Lead-Time Uncertainty Divergence Curve (Day 1 to 10)</span>
+            <span class="text-caption font-mono">Illustrative ensemble spread σ</span>
+          </div>
+          <div class="divergence-chart" id="divergenceChartContainer"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCloseModelLab2">Close Lab</button>
+        <button class="btn btn-primary" id="btnDownloadChart">Download chart SVG</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Operational REST API & CAP Common Alerting Protocol Sandbox -->
+  <div class="modal-backdrop hidden" id="modalApiSandbox">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3>API & CAP format preview</h3>
+          <span class="text-caption">Illustrative payloads from the local prototype · no live endpoint</span>
+        </div>
+        <button class="btn-icon" id="btnCloseApiModal">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="api-tabs">
+          <button class="api-tab active" data-tab="curl">cURL example</button>
+          <button class="api-tab" data-tab="json">Sample JSON</button>
+          <button class="api-tab" data-tab="cap">CAP XML example</button>
+          <button class="api-tab" data-tab="python">Python example</button>
+        </div>
+
+        <div class="api-tab-content" id="apiTabContent">
+          <div class="code-snippet-box">
+            <pre><code id="apiCodeBlock" class="font-mono"></code></pre>
+          </div>
+        </div>
+
+        <div class="api-docs-summary">
+          <div class="doc-item">
+            <span class="badge-get">GET</span>
+            <span class="font-mono font-bold">/api/v1/confidence/{district_id}/trust</span>
+            <span class="text-caption">Returns calibrated trust score (0-100), bust probability, and conformal interval.</span>
+          </div>
+          <div class="doc-item">
+            <span class="badge-get">GET</span>
+            <span class="font-mono font-bold">/api/v1/drift/spatial-vectors</span>
+            <span class="text-caption">Returns GeoJSON run-to-run forecast displacement vectors for Day 1-10.</span>
+          </div>
+          <div class="doc-item">
+            <span class="badge-get">GET</span>
+            <span class="font-mono font-bold">/api/v1/explainability/{district_id}/shap</span>
+            <span class="text-caption">Returns ranked atmospheric physical drivers and meteorological explanation cards.</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCopyApiSnippet">Copy Code Snippet</button>
+        <button class="btn btn-primary" id="btnRunApiTest">Preview sample response</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Forecaster Keyboard Shortcuts Guide -->
+  <div class="modal-backdrop hidden" id="modalShortcuts">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3>Operational Keyboard Shortcuts</h3>
+          <span class="text-caption">Fast-access hotkeys for duty meteorologists</span>
+        </div>
+        <button class="btn-icon" id="btnCloseShortcuts">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <table class="shortcuts-table">
+          <thead>
+            <tr><th>Key</th><th>Action</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><kbd>Space</kbd></td><td>Play / Pause 10-day timeline animation</td></tr>
+            <tr><td><kbd>1</kbd> – <kbd>9</kbd>, <kbd>0</kbd></td><td>Jump directly to Lead Day 1 through Day 10</td></tr>
+            <tr><td><kbd>L</kbd></td><td>Toggle Layer Controller sidebar</td></tr>
+            <tr><td><kbd>I</kbd> or <kbd>D</kbd></td><td>Toggle District Operational Intelligence drawer</td></tr>
+            <tr><td><kbd>H</kbd></td><td>Toggle between National Map and Bust Hotspots mode</td></tr>
+            <tr><td><kbd>+</kbd> / <kbd>−</kbd></td><td>Zoom in / Zoom out of map canvas</td></tr>
+            <tr><td><kbd>R</kbd></td><td>Reset map zoom and pan view</td></tr>
+            <tr><td><kbd>Esc</kbd></td><td>Close any open modal or search dropdown</td></tr>
+            <tr><td><kbd>?</kbd></td><td>Open this shortcuts guide</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="document.getElementById('modalShortcuts').classList.add('hidden')">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/data/district-dna.js"></script>
+  <script src="assets/vendor/leaflet/leaflet.js"></script>
+  <script src="js/data/basemap.js"></script>
+  <script src="js/map-engine.js"></script>
+  <script src="js/ui-controller.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

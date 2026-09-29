@@ -1,0 +1,213 @@
+/* ==========================================================================
+   Project AEGIS - Design System & CSS Custom Properties
+   Light-Theme Scientific UX for MoES / NCMRWF Forecast Bust Detection
+   ========================================================================== */
+
+:root {
+  /* Color Palette - Neutrals & Surfaces (Clean Daylight Scientific) */
+  --bg-canvas: #F8FAFC;        /* Slate 50: Clean daylight canvas */
+  --bg-surface: #FFFFFF;       /* Pure white card backgrounds */
+  --bg-surface-subtle: #F1F5F9;/* Slate 100: Secondary containers */
+  --bg-surface-elevated: #FFFFFF;
+  --bg-glass: rgba(255, 255, 255, 0.88);
+  --bg-glass-heavy: rgba(255, 255, 255, 0.95);
+  --backdrop-blur: blur(12px);
+
+  --border-subtle: #E2E8F0;    /* Slate 200: Crisp separator */
+  --border-strong: #CBD5E1;    /* Slate 300: Active borders */
+  --border-focus: #3B82F6;     /* Blue 500: Focus ring */
+
+  /* Typography Colors */
+  --text-main: #0F172A;        /* Slate 900: High-contrast primary text */
+  --text-secondary: #334155;   /* Slate 700: Body text */
+  --text-muted: #64748B;       /* Slate 500: Metadata & subtitles */
+  --text-subtle: #94A3B8;      /* Slate 400: Placeholders & disabled */
+  --text-inverse: #FFFFFF;
+
+  /* Brand & Scientific Accents */
+  --primary: #1E40AF;          /* Deep Indian Ocean Navy / Blue 800 */
+  --primary-hover: #1D4ED8;    /* Blue 700 */
+  --primary-light: #EFF6FF;    /* Blue 50 */
+  --primary-border: #BFDBFE;   /* Blue 200 */
+  --accent-cyan: #0284C7;      /* Cyan 600 */
+
+  /* Operational Trust & Bust Probability Scales */
+  --trust-high: #059669;       /* Emerald 600: High Trust (80-100) */
+  --trust-high-bg: #ECFDF5;
+  --trust-high-border: #A7F3D0;
+
+  --trust-med: #D97706;        /* Amber 600: Moderate Caution (50-79) */
+  --trust-med-bg: #FFFBEB;
+  --trust-med-border: #FDE68A;
+
+  --trust-low: #EA580C;        /* Orange 600: Elevated Bust Risk (25-49) */
+  --trust-low-bg: #FFF7ED;
+  --trust-low-border: #FED7AA;
+
+  --trust-crit: #DC2626;       /* Crimson Red 600: Critical Bust (0-24) */
+  --trust-crit-bg: #FEF2F2;
+  --trust-crit-border: #FECACA;
+
+  /* Unique Innovation Accents */
+  --innovation-drift: #7C3AED; /* Purple 600: Forecast Drift Index */
+  --innovation-drift-bg: #F5F3FF;
+  --innovation-drift-border: #DDD6FE;
+
+  --synoptic-cyan: #0284C7;    /* Sky 600: Synoptic systems */
+  --synoptic-cyan-bg: #F0F9FF;
+
+  /* Elevation Shadows */
+  --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.10), 0 8px 10px -6px rgba(15, 23, 42, 0.05);
+
+  /* Typography Stack */
+  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', Consolas, Monaco, monospace;
+
+  /* Border Radii */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Global Reset & Base */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-main);
+  background-color: var(--bg-canvas);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  color: var(--text-main);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+/* Common Typography Classes */
+.font-sans { font-family: var(--font-sans); }
+.font-mono { font-family: var(--font-mono); }
+.font-bold { font-weight: 700; }
+.font-semibold { font-weight: 600; }
+.text-caption {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.text-primary { color: var(--primary); }
+.text-emerald { color: var(--trust-high); }
+.text-amber { color: var(--trust-med); }
+.text-orange { color: var(--trust-low); }
+.text-crimson { color: var(--trust-crit); }
+.text-slate { color: var(--text-muted); }
+
+/* Common Button Styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 12px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+  outline: none;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: #FFFFFF;
+  box-shadow: 0 1px 2px rgba(30, 64, 175, 0.2);
+}
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  box-shadow: 0 2px 5px rgba(30, 64, 175, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: var(--bg-surface);
+  color: var(--text-secondary);
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-xs);
+}
+.btn-secondary:hover {
+  background-color: var(--bg-surface-subtle);
+  color: var(--text-main);
+  border-color: var(--border-strong);
+}
+
+.btn-sm {
+  padding: 5px 9px;
+  font-size: 11px;
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.btn-icon:hover {
+  background-color: var(--bg-surface-subtle);
+  color: var(--text-main);
+  border-color: var(--border-strong);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-surface-subtle);
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Utility State Classes */
+.hidden { display: none !important; }
